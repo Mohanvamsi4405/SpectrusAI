@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SpectrusAI — Websites, Apps & AI Solutions</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#1d4fd7",
+          "primary-dark": "#1741b0",
+          "background-light": "#f6f6f8",
+          "background-dark": "#111521",
+          "slate-custom": "#1e293b",
+        },
+        fontFamily: { "display": ["Inter", "sans-serif"] },
+        borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "3xl": "1.5rem", "full": "9999px" },
+        animation: {
+          "fade-up": "fadeUp 0.6s ease forwards",
+          "count-in": "countIn 0.4s ease forwards",
+          "pulse-slow": "pulse 3s ease-in-out infinite",
+          "float": "float 6s ease-in-out infinite",
+          "shimmer": "shimmer 2.5s linear infinite",
+        },
+        keyframes: {
+          fadeUp: { "0%": { opacity: "0", transform: "translateY(24px)" }, "100%": { opacity: "1", transform: "translateY(0)" } },
+          float: { "0%,100%": { transform: "translateY(0)" }, "50%": { transform: "translateY(-10px)" } },
+          shimmer: { "0%": { backgroundPosition: "-200% 0" }, "100%": { backgroundPosition: "200% 0" } },
+        },
+      },
+    },
+  }
+</script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Inter', sans-serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+  /* Scroll reveal */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s ease, transform 0.65s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+  .reveal-delay-5 { transition-delay: 0.5s; }
+
+  /* Service card hover */
+  .service-card { transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
+  .service-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(29,79,215,0.10); border-color: rgba(29,79,215,0.2); }
+  .service-card:hover .service-icon { background: #1d4fd7; color: white; transform: scale(1.12); }
+  .service-icon { transition: background 0.3s ease, color 0.3s ease, transform 0.3s ease; }
+  .service-card:hover .service-arrow { opacity: 1; transform: translateX(4px); }
+  .service-arrow { opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; }
+
+  /* Industry hover */
+  .industry-item:hover .industry-icon { transform: scale(1.2) rotate(-6deg); color: #1d4fd7; }
+  .industry-icon { transition: transform 0.35s ease, color 0.35s ease; }
+
+  /* Testimonial card */
+  .testimonial-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+  .testimonial-card:hover { transform: translateY(-4px); box-shadow: 0 16px 32px rgba(29,79,215,0.09); }
+
+  /* Gradient badge */
+  .badge-glow { box-shadow: 0 0 16px rgba(29,79,215,0.18); }
+
+  /* Timeline connector animation */
+  .timeline-line { background: linear-gradient(90deg, #1d4fd7 0%, #6366f1 50%, #1d4fd7 100%); background-size: 200%; animation: shimmer 3s linear infinite; }
+
+  /* CTA section */
+  .cta-bg { background: linear-gradient(135deg, #1d4fd7 0%, #4338ca 100%); }
+
+  /* Trusted logos fade */
+  .logo-ticker { display: flex; gap: 3rem; animation: scroll-logos 20s linear infinite; white-space: nowrap; }
+  @keyframes scroll-logos { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+  /* Counter */
+  .counter { font-variant-numeric: tabular-nums; }
+
+  /* Nav scroll effect */
+  .nav-scrolled { box-shadow: 0 4px 24px rgba(0,0,0,0.08); }
+
+  /* FAQ */
+  .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1), padding 0.3s ease; }
+  .faq-answer.open { max-height: 280px; }
+  .faq-chevron { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .faq-chevron.open { transform: rotate(180deg); }
+  .faq-item:has(.faq-answer.open) { background: rgba(255,255,255,0.09) !important; }
+
+  /* Floating chat button */
+  .float-btn { animation: float 3s ease-in-out infinite; }
+</style>
+</head>
+<body class="bg-background-light text-slate-custom font-display overflow-x-hidden">
+
+<!-- Three.js Background Canvas -->
+<canvas id="three-bg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.4;"></canvas>
+
+<!-- Floating CTA Widget -->
+<a href="#cta" class="float-btn fixed bottom-8 right-8 z-50 flex items-center gap-2 bg-primary text-white text-sm font-bold px-5 py-3 rounded-full shadow-xl shadow-primary/30 hover:bg-primary-dark transition-colors group">
+  <span class="material-symbols-outlined text-lg">chat</span>
+  <span>Get a Free Quote</span>
+  <span class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</a>
+
+<!-- Navigation -->
+<header id="navbar" class="sticky top-0 z-40 w-full border-b border-primary/10 bg-white/85 backdrop-blur-lg transition-shadow">
+<div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+  <div class="flex items-center gap-2.5">
+    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/30">
+      <span class="material-symbols-outlined">analytics</span>
+    </div>
+    <h2 class="text-xl font-extrabold tracking-tight text-slate-custom">Spectrus<span class="text-primary">AI</span></h2>
+  </div>
+  <nav class="hidden md:flex items-center gap-10">
+    <a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#solutions">Services</a>
+    <a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#process">How We Work</a>
+    <a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#industries">Industries</a>
+    <a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#testimonials">Why Us</a>
+    <a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#faq">FAQ</a>
+  </nav>
+  <div class="flex items-center gap-3">
+    <button class="bg-primary text-white text-sm font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-dark hover:shadow-primary/30 hover:scale-[1.03] transition-all active:scale-95">
+      Let's Talk
+    </button>
+  </div>
+</div>
+</header>
+
+<main style="position:relative;z-index:1;">
+
+<!-- ─── HERO ─── -->
+<section class="relative overflow-hidden bg-white pt-10 pb-16 lg:pt-14 lg:pb-24">
+  <!-- Soft grid background -->
+  <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(#1d4fd7 1px,transparent 1px),linear-gradient(90deg,#1d4fd7 1px,transparent 1px);background-size:60px 60px;"></div>
+  <div class="mx-auto max-w-7xl px-6">
+    <div class="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
+      <!-- Left -->
+      <div class="max-w-xl">
+        <div class="reveal inline-flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm font-semibold text-primary mb-6 badge-glow">
+          <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+          Now Accepting New Projects
+        </div>
+        <h1 class="reveal reveal-delay-1 text-5xl font-extrabold tracking-tight text-slate-custom sm:text-6xl mb-6 leading-[1.1]">
+          Your Idea.<br>Our Code.<br><span class="text-primary">Real Results.</span>
+        </h1>
+        <p class="reveal reveal-delay-2 text-lg leading-relaxed text-slate-500 mb-10">
+          SpectrusAI is a team of passionate developers and AI engineers who build websites, intelligent chatbots, full-stack apps, ML systems, and Gen-AI automations — tailored for businesses of every size.
+        </p>
+        <div class="reveal reveal-delay-3 flex flex-col sm:flex-row gap-4 mb-10">
+          <button class="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-base font-bold text-white shadow-xl shadow-primary/25 hover:bg-primary-dark hover:scale-[1.03] transition-all active:scale-95">
+            Get a Free Quote
+            <span class="material-symbols-outlined text-lg">arrow_forward</span>
+          </button>
+          <button class="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 px-8 py-4 text-base font-bold text-slate-custom hover:border-primary/30 hover:bg-primary/5 transition-all">
+            <span class="material-symbols-outlined text-lg text-primary">grid_view</span>
+            Explore Services
+          </button>
+        </div>
+        <!-- Value Tags Row -->
+        <div class="reveal reveal-delay-4 flex flex-wrap items-center gap-3">
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 rounded-full px-3 py-1.5"><span class="material-symbols-outlined text-sm text-primary">language</span>Business Websites</span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 rounded-full px-3 py-1.5"><span class="material-symbols-outlined text-sm text-primary">smart_toy</span>AI Chatbots</span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 rounded-full px-3 py-1.5"><span class="material-symbols-outlined text-sm text-primary">biotech</span>ML & Vision</span>
+          <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 rounded-full px-3 py-1.5"><span class="material-symbols-outlined text-sm text-primary">auto_awesome</span>Gen-AI Apps</span>
+        </div>
+      </div>
+      <!-- Right – Dashboard mockup -->
+      <div class="reveal reveal-delay-2 relative">
+        <div class="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-primary/15 to-indigo-100/60 blur-2xl -z-10"></div>
+        <div class="relative rounded-2xl bg-white border border-slate-100 shadow-2xl p-6 overflow-hidden">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2.5">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white"><span class="material-symbols-outlined text-base">hub</span></div>
+              <div>
+                <p class="text-xs text-slate-400 font-medium uppercase tracking-wider leading-none">SpectrusAI</p>
+                <h3 class="text-sm font-bold text-slate-800 leading-tight">What We Build</h3>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-full px-2.5 py-1">
+              <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-xs font-bold text-emerald-700">Available</span>
+            </div>
+          </div>
+          <!-- Service skill rows -->
+          <div class="space-y-2.5 mb-5">
+            <div class="hero-skill-row">
+              <div class="flex justify-between items-center mb-1">
+                <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600"><span class="material-symbols-outlined text-sm text-primary">language</span>Business Websites</span>
+                <span class="text-xs font-bold text-primary">100%</span>
+              </div>
+              <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-primary to-indigo-400 hero-bar" style="width:0%" data-w="100%"></div></div>
+            </div>
+            <div class="hero-skill-row">
+              <div class="flex justify-between items-center mb-1">
+                <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600"><span class="material-symbols-outlined text-sm text-primary">smart_toy</span>AI Chatbots</span>
+                <span class="text-xs font-bold text-primary">95%</span>
+              </div>
+              <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-primary to-indigo-400 hero-bar" style="width:0%" data-w="95%"></div></div>
+            </div>
+            <div class="hero-skill-row">
+              <div class="flex justify-between items-center mb-1">
+                <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600"><span class="material-symbols-outlined text-sm text-primary">terminal</span>Full Stack Apps</span>
+                <span class="text-xs font-bold text-primary">92%</span>
+              </div>
+              <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-primary to-indigo-400 hero-bar" style="width:0%" data-w="92%"></div></div>
+            </div>
+            <div class="hero-skill-row">
+              <div class="flex justify-between items-center mb-1">
+                <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600"><span class="material-symbols-outlined text-sm text-primary">auto_awesome</span>Gen-AI & Automation</span>
+                <span class="text-xs font-bold text-primary">90%</span>
+              </div>
+              <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-400 hero-bar" style="width:0%" data-w="90%"></div></div>
+            </div>
+            <div class="hero-skill-row">
+              <div class="flex justify-between items-center mb-1">
+                <span class="flex items-center gap-1.5 text-xs font-semibold text-slate-600"><span class="material-symbols-outlined text-sm text-primary">biotech</span>ML & Computer Vision</span>
+                <span class="text-xs font-bold text-primary">88%</span>
+              </div>
+              <div class="h-2 bg-slate-100 rounded-full overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-400 hero-bar" style="width:0%" data-w="88%"></div></div>
+            </div>
+          </div>
+          <!-- Status row -->
+          <div class="flex items-center gap-3 rounded-xl px-4 py-3" style="background:linear-gradient(135deg,#1d4fd7/8,#4338ca/5);background:rgba(29,79,215,0.06);">
+            <span class="material-symbols-outlined text-primary text-xl animate-pulse">rocket_launch</span>
+            <div class="flex-1">
+              <p class="text-xs font-bold text-slate-700">Accepting New Projects</p>
+              <p class="text-xs text-slate-400">Reach out — let's build something great together</p>
+            </div>
+            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">Open</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SOLUTIONS ─── -->
+<section id="solutions" class="bg-background-light py-20">
+<div class="mx-auto max-w-6xl px-6">
+  <!-- Trust banner above services -->
+  <div class="reveal flex items-center justify-center gap-6 mb-12 flex-wrap">
+    <span class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 bg-white border border-slate-100 rounded-full px-4 py-2 shadow-sm"><span class="material-symbols-outlined text-sm text-primary">verified</span>AI-Driven Development</span>
+    <span class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 bg-white border border-slate-100 rounded-full px-4 py-2 shadow-sm"><span class="material-symbols-outlined text-sm text-primary">handshake</span>Trusted by Businesses</span>
+    <span class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 bg-white border border-slate-100 rounded-full px-4 py-2 shadow-sm"><span class="material-symbols-outlined text-sm text-primary">bolt</span>Fast & Transparent</span>
+  </div>
+  <div class="text-center mb-10">
+    <p class="reveal text-xs font-bold uppercase tracking-widest text-primary mb-2">What We Build</p>
+    <h2 class="reveal reveal-delay-1 text-4xl font-extrabold text-slate-custom mb-4">We Develop Businesses with AI</h2>
+    <p class="reveal reveal-delay-2 mx-auto max-w-2xl text-slate-500 text-base leading-relaxed">From professional websites that win customers to intelligent chatbots, Gen-AI automation, and custom ML systems — we are your trusted technology partner. One team, full-stack capability, AI at the core of everything we build.</p>
+  </div>
+
+  <!-- Tab Pills (hidden — used by JS) -->
+  <div class="hidden" id="sol-tabs">
+    <button data-tab="0" class="sol-tab active-tab inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-primary bg-primary text-white transition-all">
+      <span class="material-symbols-outlined text-base">language</span>Business Websites
+    </button>
+    <button data-tab="1" class="sol-tab inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary transition-all">
+      <span class="material-symbols-outlined text-base">chat</span>AI Chatbots
+    </button>
+    <button data-tab="2" class="sol-tab inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary transition-all">
+      <span class="material-symbols-outlined text-base">terminal</span>Full Stack Apps
+    </button>
+    <button data-tab="3" class="sol-tab inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary transition-all">
+      <span class="material-symbols-outlined text-base">biotech</span>ML & Vision
+    </button>
+    <button data-tab="4" class="sol-tab inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary transition-all">
+      <span class="material-symbols-outlined text-base">auto_awesome</span>Gen-AI & Automation
+    </button>
+    <button data-tab="5" class="sol-tab inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border border-slate-200 bg-white text-slate-600 hover:border-primary hover:text-primary transition-all">
+      <span class="material-symbols-outlined text-base">medical_services</span>Healthcare & Education
+    </button>
+  </div>
+
+  <!-- Sidebar + Panel Layout -->
+  <div class="reveal reveal-delay-1 flex flex-col lg:flex-row rounded-2xl overflow-hidden shadow-xl" style="border:1px solid #e2e8f0;">
+
+    <!-- Left sidebar — dark navy -->
+    <div class="lg:w-60 shrink-0 p-4 flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible" style="background:linear-gradient(160deg,#0f2240 0%,#1d4fd7 100%);">
+      <div class="hidden lg:block mb-4 px-2">
+        <p class="text-white/40 text-xs font-bold uppercase tracking-widest">Our Services</p>
+        <p class="text-white/25 text-xs mt-1">Trusted · AI-Powered · Custom</p>
+      </div>
+      <button data-tab="0" class="sol-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-left transition-all bg-white text-primary shadow-lg">
+        <span class="material-symbols-outlined text-xl shrink-0">language</span>
+        <span class="whitespace-nowrap lg:whitespace-normal font-bold">Business Websites</span>
+      </button>
+      <button data-tab="1" class="sol-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-left transition-all text-white/70 hover:bg-white/10 hover:text-white">
+        <span class="material-symbols-outlined text-xl shrink-0 opacity-80">chat</span>
+        <span class="whitespace-nowrap lg:whitespace-normal">AI Chatbots</span>
+      </button>
+      <button data-tab="2" class="sol-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-left transition-all text-white/70 hover:bg-white/10 hover:text-white">
+        <span class="material-symbols-outlined text-xl shrink-0 opacity-80">terminal</span>
+        <span class="whitespace-nowrap lg:whitespace-normal">Full Stack Apps</span>
+      </button>
+      <button data-tab="3" class="sol-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-left transition-all text-white/70 hover:bg-white/10 hover:text-white">
+        <span class="material-symbols-outlined text-xl shrink-0 opacity-80">biotech</span>
+        <span class="whitespace-nowrap lg:whitespace-normal">ML & Computer Vision</span>
+      </button>
+      <button data-tab="4" class="sol-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-left transition-all text-white/70 hover:bg-white/10 hover:text-white">
+        <span class="material-symbols-outlined text-xl shrink-0 opacity-80">auto_awesome</span>
+        <span class="whitespace-nowrap lg:whitespace-normal">Gen-AI & Automation</span>
+      </button>
+      <button data-tab="5" class="sol-tab w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-left transition-all text-white/70 hover:bg-white/10 hover:text-white">
+        <span class="material-symbols-outlined text-xl shrink-0 opacity-80">medical_services</span>
+        <span class="whitespace-nowrap lg:whitespace-normal">Healthcare & Education</span>
+      </button>
+    </div>
+
+    <!-- Right panel area -->
+  <div id="sol-panels" class="flex-1 relative">
+    <!-- Panel 0 -->
+    <div class="sol-panel p-8" data-panel="0">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/25 sol-icon-anim shrink-0">
+          <span class="material-symbols-outlined text-2xl">language</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-custom">Business Websites</h3>
+          <span class="inline-block bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-200 mt-0.5">Professional & Fast</span>
+        </div>
+      </div>
+      <p class="text-slate-500 text-sm leading-relaxed mb-5">Your website is your most powerful business tool — and we build it right. Clean, modern, mobile-first websites for real estate agencies, schools, restaurants, retail stores, clinics and service businesses. Every site is crafted to make a strong first impression, rank on search engines, and turn visitors into paying customers.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">home_work</span><p class="text-xs font-semibold text-slate-600">Real Estate Sites</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">school</span><p class="text-xs font-semibold text-slate-600">School Portals</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">storefront</span><p class="text-xs font-semibold text-slate-600">Business Sites</p></div>
+      </div>
+      <a href="#" class="inline-flex items-center gap-1 text-primary font-bold text-sm hover:gap-2 transition-all">Discuss your project <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+    </div>
+    <!-- Panel 1 -->
+    <div class="sol-panel p-8 hidden" data-panel="1">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/25 sol-icon-anim shrink-0">
+          <span class="material-symbols-outlined text-2xl">chat</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-custom">AI Chatbots</h3>
+          <span class="inline-block bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-200 mt-0.5">Never Miss a Lead</span>
+        </div>
+      </div>
+      <p class="text-slate-500 text-sm leading-relaxed mb-5">Stop losing leads after hours. Our AI chatbots engage your website visitors 24/7 — answering questions, booking appointments, qualifying prospects, and guiding users to conversion. Built custom for your business: healthcare clinics, schools, real estate agencies, restaurants and more.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">smart_toy</span><p class="text-xs font-semibold text-slate-600">Website Chatbots</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">health_and_safety</span><p class="text-xs font-semibold text-slate-600">Healthcare Bots</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">calendar_month</span><p class="text-xs font-semibold text-slate-600">Booking Assistants</p></div>
+      </div>
+      <a href="#" class="inline-flex items-center gap-1 text-primary font-bold text-sm hover:gap-2 transition-all">Discuss your project <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+    </div>
+    <!-- Panel 2 -->
+    <div class="sol-panel p-8 hidden" data-panel="2">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/25 sol-icon-anim shrink-0">
+          <span class="material-symbols-outlined text-2xl">terminal</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-custom">Full Stack Apps</h3>
+          <span class="inline-block bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-200 mt-0.5">Built to Scale</span>
+        </div>
+      </div>
+      <p class="text-slate-500 text-sm leading-relaxed mb-5">Take your business beyond a static website. We build powerful full-stack web applications — customer dashboards, booking platforms, e-commerce stores, admin portals, and internal tools — all AI-ready and built to scale with your growth. Your idea, engineered end-to-end.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">web</span><p class="text-xs font-semibold text-slate-600">Web Apps</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">api</span><p class="text-xs font-semibold text-slate-600">APIs & Backend</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">dashboard</span><p class="text-xs font-semibold text-slate-600">Admin Dashboards</p></div>
+      </div>
+      <a href="#" class="inline-flex items-center gap-1 text-primary font-bold text-sm hover:gap-2 transition-all">Discuss your project <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+    </div>
+    <!-- Panel 3 -->
+    <div class="sol-panel p-8 hidden" data-panel="3">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/25 sol-icon-anim shrink-0">
+          <span class="material-symbols-outlined text-2xl">biotech</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-custom">ML & Computer Vision</h3>
+          <span class="inline-block bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-200 mt-0.5">Data → Decisions</span>
+        </div>
+      </div>
+      <p class="text-slate-500 text-sm leading-relaxed mb-5">Your data holds untapped value — we help you unlock it. We build ML models that predict outcomes, detect patterns, and automate decisions. Computer vision systems for object detection, face recognition, quality inspection, and medical image analysis. Turn data into your most valuable business asset.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">visibility</span><p class="text-xs font-semibold text-slate-600">Image Recognition</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">model_training</span><p class="text-xs font-semibold text-slate-600">Predictive Models</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">query_stats</span><p class="text-xs font-semibold text-slate-600">Data Analysis</p></div>
+      </div>
+      <a href="#" class="inline-flex items-center gap-1 text-primary font-bold text-sm hover:gap-2 transition-all">Discuss your project <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+    </div>
+    <!-- Panel 4 -->
+    <div class="sol-panel p-8 hidden" data-panel="4">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/25 sol-icon-anim shrink-0">
+          <span class="material-symbols-outlined text-2xl">auto_awesome</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-custom">Gen-AI & Automation</h3>
+          <span class="inline-block bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-200 mt-0.5">Work Smarter, Not Harder</span>
+        </div>
+      </div>
+      <p class="text-slate-500 text-sm leading-relaxed mb-5">The most competitive businesses today are powered by AI automation — and we build exactly that. Custom Gen-AI applications, intelligent document processing, automated content workflows, and AI agents that handle repetitive tasks so your team can focus on what truly matters. More output. Less overhead.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">psychology</span><p class="text-xs font-semibold text-slate-600">Gen-AI Apps</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">sync_alt</span><p class="text-xs font-semibold text-slate-600">Workflow Automation</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">description</span><p class="text-xs font-semibold text-slate-600">Document AI</p></div>
+      </div>
+      <a href="#" class="inline-flex items-center gap-1 text-primary font-bold text-sm hover:gap-2 transition-all">Discuss your project <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+    </div>
+    <!-- Panel 5 -->
+    <div class="sol-panel p-8 hidden" data-panel="5">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white shadow-md shadow-primary/25 sol-icon-anim shrink-0">
+          <span class="material-symbols-outlined text-2xl">medical_services</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-extrabold text-slate-custom">Healthcare & Education</h3>
+          <span class="inline-block bg-emerald-50 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded-full border border-emerald-200 mt-0.5">Purpose-Built</span>
+        </div>
+      </div>
+      <p class="text-slate-500 text-sm leading-relaxed mb-5">Healthcare and education deserve purpose-built technology. We build AI-powered solutions for clinics, hospitals, schools and institutes — patient intake chatbots, appointment management portals, diagnostic support tools, student information systems, and interactive e-learning platforms. Designed for care, built for scale.</p>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">local_hospital</span><p class="text-xs font-semibold text-slate-600">Health Portals</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">menu_book</span><p class="text-xs font-semibold text-slate-600">School Websites</p></div>
+        <div class="bg-slate-50 rounded-xl p-3 text-center border border-slate-100"><span class="material-symbols-outlined text-primary text-2xl block mb-1">cast_for_education</span><p class="text-xs font-semibold text-slate-600">E-Learning</p></div>
+      </div>
+      <a href="#" class="inline-flex items-center gap-1 text-primary font-bold text-sm hover:gap-2 transition-all">Discuss your project <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+    </div>
+  </div><!-- end sol-panels -->
+  </div><!-- end sidebar+panel flex -->
+</div>
+</section>
+
+<style>
+  .sol-panel { animation: panelIn 0.3s ease forwards; }
+  @keyframes panelIn { from { opacity:0; transform:translateX(8px); } to { opacity:1; transform:translateX(0); } }
+  .sol-icon-anim { animation: iconPop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+  @keyframes iconPop { from { transform:scale(0.7) rotate(-8deg); } to { transform:scale(1) rotate(0deg); } }
+</style>
+<script>
+(function(){
+  const tabs = document.querySelectorAll('.sol-tab');
+  const panels = document.querySelectorAll('.sol-panel');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const idx = tab.dataset.tab;
+      // Reset all sidebar tabs to inactive style
+      tabs.forEach(t => {
+        t.classList.remove('bg-white','text-primary','shadow-lg');
+        t.classList.add('text-white/70','hover:bg-white/10','hover:text-white');
+        const icon = t.querySelector('.material-symbols-outlined');
+        icon.classList.add('opacity-80');
+      });
+      // Activate clicked tab — white pill on dark bg
+      tab.classList.add('bg-white','text-primary','shadow-lg');
+      tab.classList.remove('text-white/70','hover:bg-white/10','hover:text-white');
+      tab.querySelector('.material-symbols-outlined').classList.remove('opacity-80');
+      // Show correct panel
+      panels.forEach(p => p.classList.add('hidden'));
+      const active = document.querySelector(`.sol-panel[data-panel="${idx}"]`);
+      active.classList.remove('hidden');
+      // Re-trigger icon animation
+      const panelIcon = active.querySelector('.sol-icon-anim');
+      if(panelIcon){ panelIcon.style.animation='none'; requestAnimationFrame(()=>{ panelIcon.style.animation=''; }); }
+    });
+  });
+})();
+</script>
+
+<!-- ─── BROCHURE / BUSINESS WITH AI ─── -->
+<section class="bg-white py-24 border-t border-slate-100">
+<div class="mx-auto max-w-7xl px-6">
+  <div class="relative rounded-3xl overflow-hidden" style="background: linear-gradient(135deg, #0a1f40 0%, #1d4fd7 60%, #4338ca 100%);">
+    <div class="absolute inset-0 opacity-10" style="background-image: linear-gradient(white 1px,transparent 1px),linear-gradient(90deg,white 1px,transparent 1px);background-size:48px 48px;"></div>
+    <div class="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-blue-300/20 blur-3xl pointer-events-none"></div>
+    <div class="absolute -left-10 -bottom-10 h-56 w-56 rounded-full bg-indigo-400/10 blur-3xl pointer-events-none"></div>
+    <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center px-10 py-16">
+      <!-- Left -->
+      <div>
+        <div class="reveal inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-sm font-semibold text-white/90 mb-6">
+          <span class="material-symbols-outlined text-base">auto_awesome</span>
+          Your Trusted AI Technology Partner
+        </div>
+        <h2 class="reveal reveal-delay-1 text-3xl sm:text-4xl font-extrabold text-white mb-4 leading-tight">
+          We Develop<br><span style="color:#93c5fd;">Businesses with AI</span>
+        </h2>
+        <p class="reveal reveal-delay-2 text-white/70 text-lg leading-relaxed mb-8 max-w-lg">
+          From intelligent chatbots and full-stack web applications to computer vision, Gen-AI automation and professional business websites — SpectrusAI is the trusted team that builds technology to grow your business.
+        </p>
+        <ul class="reveal reveal-delay-3 space-y-3 mb-10">
+          <li class="flex items-center gap-3 text-white/80 text-sm"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/15"><span class="material-symbols-outlined text-sm text-white">check</span></span>AI that drives real business growth</li>
+          <li class="flex items-center gap-3 text-white/80 text-sm"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/15"><span class="material-symbols-outlined text-sm text-white">check</span></span>Honest pricing, clear communication, no hidden fees</li>
+          <li class="flex items-center gap-3 text-white/80 text-sm"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/15"><span class="material-symbols-outlined text-sm text-white">check</span></span>Full-stack capability under one trusted team</li>
+          <li class="flex items-center gap-3 text-white/80 text-sm"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/15"><span class="material-symbols-outlined text-sm text-white">check</span></span>Complete services brochure &amp; pricing guide</li>
+        </ul>
+        <div class="reveal reveal-delay-4 flex flex-col sm:flex-row gap-4">
+          <a href="#" class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-extrabold text-primary hover:bg-blue-50 hover:scale-[1.03] transition-all active:scale-95 shadow-xl shadow-black/20">
+            <span class="material-symbols-outlined text-xl">download</span>
+            Download Brochure — Free
+          </a>
+          <a href="#cta" class="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/30 px-8 py-4 text-base font-bold text-white hover:bg-white/10 transition-colors">
+            <span class="material-symbols-outlined text-lg">calendar_month</span>
+            Book a Call Instead
+          </a>
+        </div>
+        <p class="reveal reveal-delay-5 text-white/40 text-xs mt-4">PDF · No email required · Instant download · 2025</p>
+      </div>
+      <!-- Right: mockup -->
+      <div class="reveal reveal-delay-2 flex justify-center lg:justify-end">
+        <div class="relative w-64 sm:w-72">
+          <div class="absolute inset-0 translate-x-3 translate-y-3 rounded-2xl bg-white/5 border border-white/10"></div>
+          <div class="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-2xl bg-white/8 border border-white/10"></div>
+          <div class="relative rounded-2xl bg-white shadow-2xl overflow-hidden border border-white/20">
+            <div class="px-7 py-8" style="background: linear-gradient(135deg, #1d4fd7 0%, #4338ca 100%);">
+              <div class="flex items-center gap-2 mb-6">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20"><span class="material-symbols-outlined text-white text-lg">analytics</span></div>
+                <span class="text-white font-extrabold text-sm">SpectrusAI</span>
+              </div>
+              <p class="text-white/60 text-xs font-bold uppercase tracking-widest mb-2">2025 Services Guide</p>
+              <h3 class="text-white text-xl font-extrabold leading-tight">AI Solutions<br>Brochure</h3>
+              <div class="flex gap-1.5 mt-4">
+                <span class="h-1.5 w-8 rounded-full bg-white/40"></span>
+                <span class="h-1.5 w-4 rounded-full bg-white/20"></span>
+                <span class="h-1.5 w-6 rounded-full bg-white/20"></span>
+              </div>
+            </div>
+            <div class="px-6 py-5 space-y-3">
+              <div class="flex items-center gap-3"><span class="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-base">trending_up</span></span><div class="flex-1"><div class="h-2 rounded bg-slate-200 w-full mb-1.5"></div><div class="h-2 rounded bg-slate-100 w-3/4"></div></div></div>
+              <div class="flex items-center gap-3"><span class="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-base">groups</span></span><div class="flex-1"><div class="h-2 rounded bg-slate-200 w-5/6 mb-1.5"></div><div class="h-2 rounded bg-slate-100 w-2/3"></div></div></div>
+              <div class="flex items-center gap-3"><span class="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-base">rocket_launch</span></span><div class="flex-1"><div class="h-2 rounded bg-slate-200 w-full mb-1.5"></div><div class="h-2 rounded bg-slate-100 w-1/2"></div></div></div>
+              <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-xs text-slate-400 font-medium">Services & Pricing</span>
+                <span class="text-xs font-bold text-primary flex items-center gap-1"><span class="material-symbols-outlined text-sm">download</span>Free PDF</span>
+              </div>
+            </div>
+          </div>
+          <div class="absolute -top-4 -right-4 bg-emerald-500 text-white text-xs font-extrabold px-3 py-1.5 rounded-full shadow-lg rotate-6">FREE</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ─── HOW WE WORK ─── -->
+<section id="process" class="bg-background-light py-24 relative overflow-hidden">
+  <div class="mx-auto max-w-7xl px-6">
+    <div class="text-center mb-24">
+      <div class="reveal inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-5 py-2 text-xs font-bold text-primary uppercase tracking-widest mb-6 shadow-sm">
+        <span class="material-symbols-outlined text-sm">timeline</span>
+        Our Process
+      </div>
+      <h2 class="reveal reveal-delay-1 text-4xl sm:text-5xl font-black text-slate-custom mb-6 leading-tight">How We Deliver<br><span class="text-primary">Excellence</span></h2>
+      <p class="reveal reveal-delay-2 text-slate-500 max-w-2xl mx-auto text-lg leading-relaxed">A professional, transparent methodology designed for enterprise success. We turn complex requirements into robust, AI-powered solutions.</p>
+    </div>
+
+    <div class="relative max-w-5xl mx-auto">
+      <!-- Central Vertical Line -->
+      <div class="absolute left-6 md:left-1/2 top-4 bottom-4 w-1 bg-gradient-to-b from-primary/30 via-primary/20 to-transparent -translate-x-1/2 rounded-full hidden sm:block"></div>
+
+      <!-- Step 1 (Left side on desktop) -->
+      <div class="relative flex flex-col sm:flex-row items-start sm:items-center justify-between mb-16 md:mb-24 group reveal">
+        <!-- Center Dot -->
+        <div class="hidden sm:block absolute left-1/2 w-8 h-8 bg-white border-4 border-primary rounded-full -translate-x-1/2 z-10 shadow-[0_0_0_4px_rgba(29,79,215,0.1)] group-hover:scale-125 group-hover:bg-primary transition-all duration-300"></div>
+        
+        <!-- Desktop Content Left -->
+        <div class="hidden sm:block w-[45%] text-right pr-12">
+          <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-primary shadow-xl shadow-primary/10 border border-slate-100 mb-5 group-hover:-translate-y-2 transition-transform duration-300">
+            <span class="material-symbols-outlined text-3xl">forum</span>
+          </div>
+          <h4 class="font-extrabold text-slate-800 text-2xl mb-3">Discovery Audit</h4>
+          <p class="text-slate-500 text-base leading-relaxed">We listen carefully to your business challenges, map workflows, and define exactly where AI and automation can deliver measurable ROI.</p>
+        </div>
+        
+        <!-- Large Transparent Number Right -->
+        <div class="w-[45%] hidden sm:flex items-center pl-12 text-9xl font-black text-slate-200/50 select-none group-hover:text-primary/10 transition-colors duration-500 tracking-tighter">
+          01
+        </div>
+
+        <!-- Mobile Layout -->
+        <div class="sm:hidden w-full flex gap-5 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative z-10">
+          <div class="shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <span class="material-symbols-outlined text-2xl">forum</span>
+          </div>
+          <div>
+            <span class="text-xs font-black text-primary/50 tracking-widest mb-1 block">STEP 01</span>
+            <h4 class="font-extrabold text-slate-800 text-lg mb-2">Discovery Audit</h4>
+            <p class="text-slate-500 text-sm leading-relaxed">We listen carefully to your business challenges, map workflows, and define exactly where AI can deliver ROI.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 (Right side on desktop) -->
+      <div class="relative flex flex-col sm:flex-row items-start sm:items-center justify-between mb-16 md:mb-24 group reveal reveal-delay-1">
+        <div class="hidden sm:block absolute left-1/2 w-8 h-8 bg-white border-4 border-indigo-500 rounded-full -translate-x-1/2 z-10 shadow-[0_0_0_4px_rgba(99,102,241,0.1)] group-hover:scale-125 group-hover:bg-indigo-500 transition-all duration-300"></div>
+        
+        <div class="w-[45%] hidden sm:flex items-center justify-end pr-12 text-9xl font-black text-slate-200/50 select-none group-hover:text-indigo-500/10 transition-colors duration-500 tracking-tighter">
+          02
+        </div>
+        
+        <div class="hidden sm:block w-[45%] text-left pl-12">
+          <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-indigo-500 shadow-xl shadow-indigo-500/10 border border-slate-100 mb-5 group-hover:-translate-y-2 transition-transform duration-300">
+            <span class="material-symbols-outlined text-3xl">architecture</span>
+          </div>
+          <h4 class="font-extrabold text-slate-800 text-2xl mb-3">Strategy & Design</h4>
+          <p class="text-slate-500 text-base leading-relaxed">We architect a custom solution with a clear proposal, firm pricing, and detailed wireframes so you see the final product before we build.</p>
+        </div>
+
+        <!-- Mobile Layout -->
+        <div class="sm:hidden w-full flex gap-5 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative z-10">
+          <div class="shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+            <span class="material-symbols-outlined text-2xl">architecture</span>
+          </div>
+          <div>
+            <span class="text-xs font-black text-indigo-500/50 tracking-widest mb-1 block">STEP 02</span>
+            <h4 class="font-extrabold text-slate-800 text-lg mb-2">Strategy & Design</h4>
+            <p class="text-slate-500 text-sm leading-relaxed">We architect a custom solution with a clear proposal, firm pricing, and detailed wireframes so you see the final product before we build.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 (Left side on desktop) -->
+      <div class="relative flex flex-col sm:flex-row items-start sm:items-center justify-between mb-16 md:mb-24 group reveal reveal-delay-2">
+        <div class="hidden sm:block absolute left-1/2 w-8 h-8 bg-white border-4 border-violet-500 rounded-full -translate-x-1/2 z-10 shadow-[0_0_0_4px_rgba(139,92,246,0.1)] group-hover:scale-125 group-hover:bg-violet-500 transition-all duration-300"></div>
+        
+        <div class="hidden sm:block w-[45%] text-right pr-12">
+          <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-violet-500 shadow-xl shadow-violet-500/10 border border-slate-100 mb-5 group-hover:-translate-y-2 transition-transform duration-300">
+            <span class="material-symbols-outlined text-3xl">rocket_launch</span>
+          </div>
+          <h4 class="font-extrabold text-slate-800 text-2xl mb-3">Build & Refine</h4>
+          <p class="text-slate-500 text-base leading-relaxed">Agile development in focused sprints. We provide regular live demos, iterate based on your feedback, and ensure flawless precision.</p>
+        </div>
+        
+        <div class="w-[45%] hidden sm:flex items-center pl-12 text-9xl font-black text-slate-200/50 select-none group-hover:text-violet-500/10 transition-colors duration-500 tracking-tighter">
+          03
+        </div>
+
+        <!-- Mobile Layout -->
+        <div class="sm:hidden w-full flex gap-5 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative z-10">
+          <div class="shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/10 text-violet-500">
+            <span class="material-symbols-outlined text-2xl">rocket_launch</span>
+          </div>
+          <div>
+            <span class="text-xs font-black text-violet-500/50 tracking-widest mb-1 block">STEP 03</span>
+            <h4 class="font-extrabold text-slate-800 text-lg mb-2">Build & Refine</h4>
+            <p class="text-slate-500 text-sm leading-relaxed">Agile development in focused sprints. We provide regular live demos, iterate based on your feedback, and ensure flawless precision.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 (Right side on desktop) -->
+      <div class="relative flex flex-col sm:flex-row items-start sm:items-center justify-between group reveal reveal-delay-3">
+        <div class="hidden sm:block absolute left-1/2 w-8 h-8 bg-white border-4 border-emerald-500 rounded-full -translate-x-1/2 z-10 shadow-[0_0_0_4px_rgba(16,185,129,0.1)] group-hover:scale-125 group-hover:bg-emerald-500 transition-all duration-300"></div>
+        
+        <div class="w-[45%] hidden sm:flex items-center justify-end pr-12 text-9xl font-black text-slate-200/50 select-none group-hover:text-emerald-500/10 transition-colors duration-500 tracking-tighter">
+          04
+        </div>
+        
+        <div class="hidden sm:block w-[45%] text-left pl-12">
+          <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-emerald-500 shadow-xl shadow-emerald-500/10 border border-slate-100 mb-5 group-hover:-translate-y-2 transition-transform duration-300">
+            <span class="material-symbols-outlined text-3xl">verified</span>
+          </div>
+          <h4 class="font-extrabold text-slate-800 text-2xl mb-3">Launch & Support</h4>
+          <p class="text-slate-500 text-base leading-relaxed">Seamless deployment and code handover. We provide comprehensive documentation and reliable post-launch support to help your project thrive.</p>
+        </div>
+
+        <!-- Mobile Layout -->
+        <div class="sm:hidden w-full flex gap-5 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative z-10">
+          <div class="shrink-0 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+            <span class="material-symbols-outlined text-2xl">verified</span>
+          </div>
+          <div>
+            <span class="text-xs font-black text-emerald-500/50 tracking-widest mb-1 block">STEP 04</span>
+            <h4 class="font-extrabold text-slate-800 text-lg mb-2">Launch & Support</h4>
+            <p class="text-slate-500 text-sm leading-relaxed">Seamless deployment and code handover. We provide comprehensive documentation and reliable post-launch support to help your project thrive.</p>
+          </div>
+        </div>
+      </div>
+    </div> <!-- end timeline -->
+
+    <!-- Trust banner at bottom -->
+    <div class="reveal reveal-delay-4 mt-24 max-w-4xl mx-auto rounded-3xl overflow-hidden bg-white shadow-xl shadow-primary/5 border border-slate-200/60 p-1">
+      <div class="rounded-[1.35rem] p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-8" style="background:linear-gradient(135deg,#f8fafc,#f1f5f9);">
+        <div>
+          <h4 class="font-black text-slate-800 text-2xl mb-2">Ready to Build Your AI Future?</h4>
+          <p class="text-slate-500 text-base">Book a discovery call today and let's map out your next big project.</p>
+        </div>
+        <a href="#cta" class="shrink-0 inline-flex items-center gap-2.5 rounded-xl bg-primary px-8 py-4 text-sm font-extrabold text-white shadow-lg shadow-primary/30 hover:bg-primary-dark hover:-translate-y-1 transition-all">
+          <span class="material-symbols-outlined text-lg">calendar_month</span>
+          Talk to an Expert
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── INDUSTRIES ─── -->
+<section id="industries" class="bg-background-light py-24">
+<div class="mx-auto max-w-7xl px-6">
+  <div class="text-center mb-16">
+    <p class="reveal text-xs font-bold uppercase tracking-widest text-primary mb-3">Who We Serve</p>
+    <h2 class="reveal reveal-delay-1 text-4xl font-extrabold text-slate-custom mb-4">Industries We Work In</h2>
+    <p class="reveal reveal-delay-2 text-slate-500 max-w-xl mx-auto">We build digital products and AI solutions across a wide range of industries — bringing the right technology to the right people.</p>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+    <div class="industry-item reveal group flex flex-col items-center gap-4 p-6 rounded-2xl bg-white border border-slate-100 hover:border-primary/20 hover:shadow-lg transition-all cursor-pointer text-center">
+      <span class="industry-icon material-symbols-outlined text-4xl text-primary/60">health_and_safety</span>
+      <span class="font-bold text-sm text-slate-700">Healthcare</span>
+      <p class="text-xs text-slate-400 hidden group-hover:block transition-all">Chatbots & patient portals</p>
+    </div>
+    <div class="industry-item reveal reveal-delay-1 group flex flex-col items-center gap-4 p-6 rounded-2xl bg-white border border-slate-100 hover:border-primary/20 hover:shadow-lg transition-all cursor-pointer text-center">
+      <span class="industry-icon material-symbols-outlined text-4xl text-primary/60">home_work</span>
+      <span class="font-bold text-sm text-slate-700">Real Estate</span>
+      <p class="text-xs text-slate-400 hidden group-hover:block">Property listing websites</p>
+    </div>
+    <div class="industry-item reveal reveal-delay-2 group flex flex-col items-center gap-4 p-6 rounded-2xl bg-white border border-slate-100 hover:border-primary/20 hover:shadow-lg transition-all cursor-pointer text-center">
+      <span class="industry-icon material-symbols-outlined text-4xl text-primary/60">school</span>
+      <span class="font-bold text-sm text-slate-700">Education</span>
+      <p class="text-xs text-slate-400 hidden group-hover:block">School sites & e-learning</p>
+    </div>
+    <div class="industry-item reveal reveal-delay-3 group flex flex-col items-center gap-4 p-6 rounded-2xl bg-white border border-slate-100 hover:border-primary/20 hover:shadow-lg transition-all cursor-pointer text-center">
+      <span class="industry-icon material-symbols-outlined text-4xl text-primary/60">restaurant</span>
+      <span class="font-bold text-sm text-slate-700">Restaurants</span>
+      <p class="text-xs text-slate-400 hidden group-hover:block">Menus, orders & chatbots</p>
+    </div>
+    <div class="industry-item reveal reveal-delay-4 group flex flex-col items-center gap-4 p-6 rounded-2xl bg-white border border-slate-100 hover:border-primary/20 hover:shadow-lg transition-all cursor-pointer text-center">
+      <span class="industry-icon material-symbols-outlined text-4xl text-primary/60">storefront</span>
+      <span class="font-bold text-sm text-slate-700">Retail & Business</span>
+      <p class="text-xs text-slate-400 hidden group-hover:block">E-commerce & business sites</p>
+    </div>
+    <div class="industry-item reveal reveal-delay-5 group flex flex-col items-center gap-4 p-6 rounded-2xl bg-white border border-slate-100 hover:border-primary/20 hover:shadow-lg transition-all cursor-pointer text-center">
+      <span class="industry-icon material-symbols-outlined text-4xl text-primary/60">lightbulb</span>
+      <span class="font-bold text-sm text-slate-700">Startups</span>
+      <p class="text-xs text-slate-400 hidden group-hover:block">MVPs & AI-powered apps</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ─── OUR PROMISE ─── -->
+<section id="testimonials" class="py-24 overflow-hidden" style="background:linear-gradient(160deg,#f0f4ff 0%,#ffffff 60%,#f5f3ff 100%);">
+<div class="mx-auto max-w-7xl px-6">
+  <div class="text-center mb-16">
+    <p class="reveal text-xs font-bold uppercase tracking-widest text-primary mb-3">Our Promise</p>
+    <h2 class="reveal reveal-delay-1 text-4xl font-extrabold text-slate-custom mb-4">What We Bring to Every Project</h2>
+    <p class="reveal reveal-delay-2 text-slate-500 max-w-xl mx-auto">We may be starting out, but our passion, skills and commitment are anything but entry-level.</p>
+  </div>
+
+  <!-- Large feature cards with hover animation -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+
+    <div class="promise-card reveal group relative overflow-hidden rounded-3xl bg-white border border-slate-100 p-8 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-default">
+      <div class="absolute top-0 right-0 w-32 h-32 rounded-bl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style="background:radial-gradient(circle at top right,rgba(29,79,215,0.06),transparent 70%)"></div>
+      <div class="flex h-16 w-16 items-center justify-center rounded-2xl mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style="background:linear-gradient(135deg,#1d4fd7,#4338ca);">
+        <span class="material-symbols-outlined text-white text-3xl">favorite</span>
+      </div>
+      <h4 class="font-extrabold text-slate-800 text-xl mb-3">Genuine Passion</h4>
+      <p class="text-slate-500 leading-relaxed text-sm mb-5">We're not just doing a job — we love building things. Every project gets our full energy, creativity and problem-solving from first call to final launch.</p>
+      <div class="flex flex-wrap gap-2">
+        <span class="text-xs font-semibold text-primary bg-primary/8 rounded-full px-3 py-1">Creative thinking</span>
+        <span class="text-xs font-semibold text-primary bg-primary/8 rounded-full px-3 py-1">Full effort</span>
+      </div>
+    </div>
+
+    <div class="promise-card reveal reveal-delay-1 group relative overflow-hidden rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-default" style="background:linear-gradient(135deg,#1d4fd7 0%,#4338ca 100%);">
+      <div class="absolute -bottom-8 -right-8 h-36 w-36 rounded-full bg-white/5 pointer-events-none"></div>
+      <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
+        <span class="material-symbols-outlined text-white text-3xl">person</span>
+      </div>
+      <h4 class="font-extrabold text-white text-xl mb-3">Personal Attention</h4>
+      <p class="text-white/70 leading-relaxed text-sm mb-5">You work directly with our core team — no middlemen, no handoffs to strangers. Your project is our priority and we communicate openly at every stage.</p>
+      <div class="flex flex-wrap gap-2">
+        <span class="text-xs font-semibold text-white/80 bg-white/15 rounded-full px-3 py-1">Direct access</span>
+        <span class="text-xs font-semibold text-white/80 bg-white/15 rounded-full px-3 py-1">Real humans</span>
+      </div>
+    </div>
+
+    <div class="promise-card reveal reveal-delay-2 group relative overflow-hidden rounded-3xl bg-white border border-slate-100 p-8 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 cursor-default">
+      <div class="absolute top-0 right-0 w-32 h-32 rounded-bl-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" style="background:radial-gradient(circle at top right,rgba(16,185,129,0.06),transparent 70%)"></div>
+      <div class="flex h-16 w-16 items-center justify-center rounded-2xl mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" style="background:linear-gradient(135deg,#10b981,#059669);">
+        <span class="material-symbols-outlined text-white text-3xl">payments</span>
+      </div>
+      <h4 class="font-extrabold text-slate-800 text-xl mb-3">Honest Pricing</h4>
+      <p class="text-slate-500 leading-relaxed text-sm mb-5">Transparent, fair pricing with no hidden fees. Whether you're a small business, school, startup or individual — we work within your budget without cutting corners.</p>
+      <div class="flex flex-wrap gap-2">
+        <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-full px-3 py-1">No hidden fees</span>
+        <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-full px-3 py-1">Flexible budget</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom stat strip -->
+  <div class="reveal reveal-delay-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="rounded-2xl bg-white border border-slate-100 px-6 py-5 text-center shadow-sm">
+      <p class="text-3xl font-black text-primary mb-1">8+</p>
+      <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Service Types</p>
+    </div>
+    <div class="rounded-2xl bg-white border border-slate-100 px-6 py-5 text-center shadow-sm">
+      <p class="text-3xl font-black text-primary mb-1">100%</p>
+      <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Custom Built</p>
+    </div>
+    <div class="rounded-2xl bg-white border border-slate-100 px-6 py-5 text-center shadow-sm">
+      <p class="text-3xl font-black text-emerald-600 mb-1">Fast</p>
+      <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Delivery</p>
+    </div>
+    <div class="rounded-2xl bg-white border border-slate-100 px-6 py-5 text-center shadow-sm">
+      <p class="text-3xl font-black text-indigo-600 mb-1">∞</p>
+      <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Support After Launch</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ─── WHY SPECTRUSAI ─── -->
+<section class="bg-background-light py-24">
+<div class="mx-auto max-w-7xl px-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <div>
+      <p class="reveal text-xs font-bold uppercase tracking-widest text-primary mb-3">Why Choose Us</p>
+      <h2 class="reveal reveal-delay-1 text-4xl font-extrabold text-slate-custom mb-6">Fresh Team. Full Commitment.</h2>
+      <p class="reveal reveal-delay-2 text-slate-500 text-lg leading-relaxed mb-10">We're a group of friends who came together because we share a passion for technology and building things that make a real difference. When you hire us, you get a team that genuinely cares about your project.</p>
+      <div class="space-y-5">
+        <div class="reveal flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white mt-0.5"><span class="material-symbols-outlined text-lg">check</span></div>
+          <div><h4 class="font-bold text-slate-800 mb-1">One Team, Many Skills</h4><p class="text-slate-500 text-sm">Web design, full-stack development, AI/ML, computer vision, Gen-AI and chatbots — all under one roof, no need to juggle multiple vendors.</p></div>
+        </div>
+        <div class="reveal reveal-delay-1 flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white mt-0.5"><span class="material-symbols-outlined text-lg">check</span></div>
+          <div><h4 class="font-bold text-slate-800 mb-1">Affordable for Any Budget</h4><p class="text-slate-500 text-sm">We work with small businesses, schools, startups and individuals. Transparent quotes, flexible payment, no bloated agency fees.</p></div>
+        </div>
+        <div class="reveal reveal-delay-2 flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white mt-0.5"><span class="material-symbols-outlined text-lg">check</span></div>
+          <div><h4 class="font-bold text-slate-800 mb-1">Fast Turnaround</h4><p class="text-slate-500 text-sm">Small, focused team means faster delivery. A business website in days, a full app in weeks — we move quickly without compromising quality.</p></div>
+        </div>
+        <div class="reveal reveal-delay-3 flex items-start gap-4">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white mt-0.5"><span class="material-symbols-outlined text-lg">check</span></div>
+          <div><h4 class="font-bold text-slate-800 mb-1">You Own Everything</h4><p class="text-slate-500 text-sm">Every line of code, every design asset, every database — it's yours. Full handover with documentation so you're never locked in.</p></div>
+        </div>
+      </div>
+    </div>
+    <!-- Comparison card -->
+    <div class="reveal reveal-delay-2">
+      <div class="rounded-2xl bg-white border border-slate-100 shadow-xl overflow-hidden">
+        <div class="grid grid-cols-3 bg-slate-50 border-b border-slate-100 text-center text-xs font-bold uppercase tracking-wider">
+          <div class="p-4 text-slate-400">Feature</div>
+          <div class="p-4 text-slate-400">Typical Freelancers</div>
+          <div class="p-4 text-primary bg-primary/5">SpectrusAI</div>
+        </div>
+        <div class="divide-y divide-slate-50">
+          <div class="grid grid-cols-3 text-center text-sm">
+            <div class="p-4 text-slate-600 font-medium text-left pl-6">Web + AI in One Place</div>
+            <div class="p-4 text-slate-400">Rarely</div>
+            <div class="p-4 font-bold text-emerald-600 bg-primary/5">✓ Always</div>
+          </div>
+          <div class="grid grid-cols-3 text-center text-sm">
+            <div class="p-4 text-slate-600 font-medium text-left pl-6">ML & Gen-AI Skills</div>
+            <div class="p-4 text-slate-400">✗</div>
+            <div class="p-4 font-bold text-emerald-600 bg-primary/5">✓ Full Stack</div>
+          </div>
+          <div class="grid grid-cols-3 text-center text-sm">
+            <div class="p-4 text-slate-600 font-medium text-left pl-6">Personal Communication</div>
+            <div class="p-4 text-slate-400">Sometimes</div>
+            <div class="p-4 font-bold text-emerald-600 bg-primary/5">✓ Always</div>
+          </div>
+          <div class="grid grid-cols-3 text-center text-sm">
+            <div class="p-4 text-slate-600 font-medium text-left pl-6">Affordable Pricing</div>
+            <div class="p-4 text-slate-400">Varies</div>
+            <div class="p-4 font-bold text-emerald-600 bg-primary/5">✓ Transparent</div>
+          </div>
+          <div class="grid grid-cols-3 text-center text-sm">
+            <div class="p-4 text-slate-600 font-medium text-left pl-6">Post-Launch Support</div>
+            <div class="p-4 text-slate-400">Rare</div>
+            <div class="p-4 font-bold text-emerald-600 bg-primary/5">✓ Included</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ─── FAQ ─── -->
+<section id="faq" class="py-24 relative overflow-hidden" style="background:linear-gradient(160deg,#0f2240 0%,#1d4fd7 100%);">
+  <!-- Decorative grid -->
+  <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image:linear-gradient(white 1px,transparent 1px),linear-gradient(90deg,white 1px,transparent 1px);background-size:48px 48px;"></div>
+  <div class="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none" style="background:radial-gradient(circle,rgba(255,255,255,0.04),transparent 70%);transform:translate(30%,-30%)"></div>
+  <div class="absolute bottom-0 left-0 w-80 h-80 rounded-full pointer-events-none" style="background:radial-gradient(circle,rgba(99,102,241,0.15),transparent 70%);transform:translate(-30%,30%)"></div>
+
+<div class="mx-auto max-w-5xl px-6 relative z-10">
+  <div class="text-center mb-14">
+    <p class="reveal text-xs font-bold uppercase tracking-widest text-blue-300 mb-3">Got Questions?</p>
+    <h2 class="reveal reveal-delay-1 text-4xl font-extrabold text-white mb-4">Frequently Asked Questions</h2>
+    <p class="reveal reveal-delay-2 text-white/60 max-w-lg mx-auto">Everything you want to know before getting started. Still unsure? Just message us.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start" id="faq-list">
+    <!-- Left: accordion -->
+    <div class="lg:col-span-3 space-y-3">
+
+      <div class="faq-item rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden reveal">
+        <button class="faq-trigger w-full flex items-center gap-4 px-6 py-5 text-left transition-all hover:bg-white/5">
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white/80"><span class="material-symbols-outlined text-lg">grid_view</span></span>
+          <span class="flex-1 font-bold text-white text-sm">What types of projects do you take on?</span>
+          <span class="material-symbols-outlined faq-chevron text-blue-300 shrink-0">expand_more</span>
+        </button>
+        <div class="faq-answer px-6 text-white/60 text-sm leading-relaxed">
+          We handle a wide range — static business websites, real estate & school sites, full-stack web apps, AI chatbots, ML models, computer vision systems, Gen-AI tools, healthcare chatbots, and automation workflows. If you have an idea, reach out — we'd love to hear it.
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden reveal reveal-delay-1">
+        <button class="faq-trigger w-full flex items-center gap-4 px-6 py-5 text-left transition-all hover:bg-white/5">
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white/80"><span class="material-symbols-outlined text-lg">payments</span></span>
+          <span class="flex-1 font-bold text-white text-sm">How much does a project cost?</span>
+          <span class="material-symbols-outlined faq-chevron text-blue-300 shrink-0">expand_more</span>
+        </button>
+        <div class="faq-answer px-6 text-white/60 text-sm leading-relaxed">
+          Pricing depends on scope and complexity. A simple business website is very affordable, while full-stack AI projects are scoped individually. We always provide a clear, itemized quote upfront — no hidden fees, no surprises. We're happy to work within your budget.
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden reveal reveal-delay-2">
+        <button class="faq-trigger w-full flex items-center gap-4 px-6 py-5 text-left transition-all hover:bg-white/5">
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white/80"><span class="material-symbols-outlined text-lg">groups</span></span>
+          <span class="flex-1 font-bold text-white text-sm">Do you work with small businesses and startups?</span>
+          <span class="material-symbols-outlined faq-chevron text-blue-300 shrink-0">expand_more</span>
+        </button>
+        <div class="faq-answer px-6 text-white/60 text-sm leading-relaxed">
+          Absolutely — small businesses, schools, startups, and individuals are exactly who we love working with. We understand that budgets are real and time is precious. We bring the same quality and care to every project regardless of size.
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden reveal reveal-delay-3">
+        <button class="faq-trigger w-full flex items-center gap-4 px-6 py-5 text-left transition-all hover:bg-white/5">
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white/80"><span class="material-symbols-outlined text-lg">schedule</span></span>
+          <span class="flex-1 font-bold text-white text-sm">How long does it take to complete a project?</span>
+          <span class="material-symbols-outlined faq-chevron text-blue-300 shrink-0">expand_more</span>
+        </button>
+        <div class="faq-answer px-6 text-white/60 text-sm leading-relaxed">
+          A simple website is typically ready in 3–7 days. Full-stack or AI-powered systems take 2–6 weeks depending on complexity. We provide a realistic timeline in our proposal and stick to it — with regular updates throughout.
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden reveal reveal-delay-4">
+        <button class="faq-trigger w-full flex items-center gap-4 px-6 py-5 text-left transition-all hover:bg-white/5">
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white/80"><span class="material-symbols-outlined text-lg">support_agent</span></span>
+          <span class="flex-1 font-bold text-white text-sm">Do you offer support after the project is live?</span>
+          <span class="material-symbols-outlined faq-chevron text-blue-300 shrink-0">expand_more</span>
+        </button>
+        <div class="faq-answer px-6 text-white/60 text-sm leading-relaxed">
+          Yes. Post-launch support is included — bug fixes, updates, and feature additions. You'll never be left stranded after go-live. We're just a message away, always ready to help as your needs grow.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: CTA card -->
+    <div class="lg:col-span-2 reveal reveal-delay-2">
+      <div class="rounded-3xl bg-white p-8 shadow-2xl sticky top-24">
+        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-white mb-5 shadow-lg shadow-primary/30">
+          <span class="material-symbols-outlined text-2xl">chat</span>
+        </div>
+        <h3 class="font-extrabold text-slate-800 text-xl mb-2">Still have questions?</h3>
+        <p class="text-slate-500 text-sm leading-relaxed mb-6">We're a friendly team. Drop us a message and we'll get back to you within a few hours — no bots, no auto-replies.</p>
+        <a href="mailto:hello@spectrusai.com" class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-primary/25 hover:bg-primary-dark hover:scale-[1.02] transition-all mb-3">
+          <span class="material-symbols-outlined text-lg">mail</span>
+          Email Us Directly
+        </a>
+        <div class="flex items-center gap-3 mt-4 pt-4 border-t border-slate-100">
+          <div class="flex -space-x-2">
+            <img class="h-8 w-8 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/40?img=12" alt="Team"/>
+            <img class="h-8 w-8 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/40?img=5" alt="Team"/>
+            <img class="h-8 w-8 rounded-full border-2 border-white object-cover" src="https://i.pravatar.cc/40?img=17" alt="Team"/>
+          </div>
+          <p class="text-xs text-slate-500">Our team replies within <span class="font-bold text-slate-700">a few hours</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+
+</main>
+
+<!-- ─── FOOTER ─── -->
+<footer class="bg-slate-900 text-white py-16">
+<div class="mx-auto max-w-7xl px-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+    <div>
+      <div class="flex items-center gap-2 mb-5">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white">
+          <span class="material-symbols-outlined text-lg">analytics</span>
+        </div>
+        <h2 class="text-lg font-extrabold">Spectrus<span class="text-primary">AI</span></h2>
+      </div>
+      <p class="text-sm text-slate-400 mb-6 leading-relaxed">A passionate team building websites, apps, AI chatbots, and intelligent systems for businesses of every size.</p>
+      <div class="flex gap-4">
+        <a class="text-slate-500 hover:text-primary transition-colors" href="#"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a>
+        <a class="text-slate-500 hover:text-primary transition-colors" href="#"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg></a>
+      </div>
+    </div>
+    <div>
+      <h4 class="font-bold mb-6 text-white">Company</h4>
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li><a class="hover:text-primary transition-colors" href="#">About Us</a></li>
+        <li><a class="hover:text-primary transition-colors" href="#">Our Work</a></li>
+        <li><a class="hover:text-primary transition-colors" href="#">Join the Team</a></li>
+        <li><a class="hover:text-primary transition-colors" href="#">Blog</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="font-bold mb-6 text-white">Services</h4>
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li><a class="hover:text-primary transition-colors" href="#">Business Websites</a></li>
+        <li><a class="hover:text-primary transition-colors" href="#">AI Chatbots</a></li>
+        <li><a class="hover:text-primary transition-colors" href="#">Full Stack Apps</a></li>
+        <li><a class="hover:text-primary transition-colors" href="#">ML & Computer Vision</a></li>
+        <li><a class="hover:text-primary transition-colors" href="#">Gen-AI & Automation</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="font-bold mb-6 text-white">Contact</h4>
+      <ul class="space-y-3 text-sm text-slate-400">
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-primary">email</span>hello@spectrusai.com</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-primary">phone</span>+1 (555) 000-0000</li>
+        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-sm text-primary">location_on</span>India — Remote & On-Site</li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+    <p class="text-xs text-slate-500">© 2025 SpectrusAI. Built with passion. All rights reserved.</p>
+    <div class="flex gap-6">
+      <a class="text-xs text-slate-500 hover:text-primary transition-colors" href="#">Privacy Policy</a>
+      <a class="text-xs text-slate-500 hover:text-primary transition-colors" href="#">Terms of Service</a>
+      <a class="text-xs text-slate-500 hover:text-primary transition-colors" href="#">Security</a>
+    </div>
+  </div>
+</div>
+</footer>
+
+<!-- ─── THREE.JS BACKGROUND ─── -->
+<script>
+(function() {
+  const canvas = document.getElementById('three-bg');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 1000);
+  camera.position.z = 7;
+  const blue = 0x3B82F6, navy = 0x1e3a8a;
+  const shapes = [
+    { geo: new THREE.IcosahedronGeometry(1.4, 1), x: -5.5, y: 2,   sx: 0.003, sy: 0.005 },
+    { geo: new THREE.TorusGeometry(1.3, 0.28, 8, 32), x: 0.5, y: -1.5, sx: 0.002, sy: 0.004 },
+    { geo: new THREE.OctahedronGeometry(1.1), x: 5.5, y: 1.8,  sx: 0.004, sy: 0.003 },
+    { geo: new THREE.TetrahedronGeometry(0.9), x: 2.5, y: -3,  sx: 0.005, sy: 0.002 },
+    { geo: new THREE.IcosahedronGeometry(0.7, 0), x: -3, y: -2.5, sx: 0.006, sy: 0.004 },
+  ];
+  const meshes = shapes.map(({ geo, x, y, sx, sy }, i) => {
+    const mat = new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? blue : navy, wireframe: true, transparent: true, opacity: 0.1 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, -1);
+    mesh.userData = { sx, sy, baseY: y, i };
+    scene.add(mesh);
+    return mesh;
+  });
+  const clock = new THREE.Clock();
+  (function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    meshes.forEach(m => {
+      m.rotation.x += m.userData.sx;
+      m.rotation.y += m.userData.sy;
+      m.position.y = m.userData.baseY + Math.sin(t * 0.45 + m.userData.i * 1.3) * 0.35;
+    });
+    renderer.render(scene, camera);
+  })();
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+})();
+</script>
+
+<!-- ─── SCROLL REVEAL + COUNTERS + FAQ ─── -->
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Counter animation
+function animateCounter(el) {
+  const target = +el.dataset.target;
+  const suffix = el.dataset.suffix || '';
+  let current = 0;
+  const step = target / 60;
+  const interval = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = Math.round(current) + suffix;
+    if (current >= target) clearInterval(interval);
+  }, 20);
+}
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { animateCounter(e.target); counterObserver.unobserve(e.target); } });
+}, { threshold: 0.5 });
+document.querySelectorAll('.counter[data-target]').forEach(el => counterObserver.observe(el));
+
+// FAQ accordion
+document.querySelectorAll('.faq-trigger').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const answer = btn.nextElementSibling;
+    const chevron = btn.querySelector('.faq-chevron');
+    const isOpen = answer.classList.contains('open');
+    document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
+    document.querySelectorAll('.faq-chevron').forEach(c => c.classList.remove('open'));
+    if (!isOpen) {
+      answer.classList.add('open');
+      chevron.classList.add('open');
+      answer.style.paddingBottom = '1.25rem';
+    } else {
+      answer.style.paddingBottom = '0';
+    }
+  });
+});
+
+// Hero skill bars animation
+(function() {
+  const bars = document.querySelectorAll('.hero-bar');
+  let animated = false;
+  function animateBars() {
+    if (animated) return;
+    animated = true;
+    bars.forEach((bar, i) => {
+      setTimeout(() => {
+        bar.style.transition = 'width 1s cubic-bezier(0.4,0,0.2,1)';
+        bar.style.width = bar.dataset.w;
+      }, i * 120);
+    });
+  }
+  const heroObs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) { animateBars(); heroObs.disconnect(); }
+  }, { threshold: 0.3 });
+  const heroSection = document.querySelector('.hero-bar');
+  if (heroSection) heroObs.observe(heroSection.closest('section') || document.body);
+  setTimeout(animateBars, 1200);
+})();
+
+// Navbar shadow on scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('nav-scrolled', scrollY > 10);
+});
+</script>
+</body>
+</html>
